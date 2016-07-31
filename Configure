@@ -890,6 +890,11 @@ then
 cat >> $SED <<EOF
 s/#undef  AR_DEFAULT_INPUT_GSTREAMER/#define AR_DEFAULT_INPUT_GSTREAMER/
 EOF
+elif [ "$DEFAULT_CAP_DEVICE" = "UEYE" ]
+then
+cat >> $SED <<EOF
+s/#undef  AR_DEFAULT_INPUT_UEYE/#define AR_DEFAULT_INPUT_UEYE/
+EOF
 elif [ "$E" = "Linux" ]
 then
 echo "You have to choose default input device!!"

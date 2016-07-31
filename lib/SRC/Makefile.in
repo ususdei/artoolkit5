@@ -51,7 +51,7 @@ all:
 	#(cd VideoQuickTime;    make -f Makefile)
 	#(cd VideoQuickTime7;   make -f Makefile)
 	#(cd VideoGStreamer;    make -f Makefile)
-	#(cd VideoUEye;    		make -f Makefile)
+	#(cd VideoUEye;         make -f Makefile)
 	#(cd VideoImage;        make -f Makefile)
 	#(cd ARosg;             make -f Makefile)
 	(cd Eden;              make -f Makefile)
