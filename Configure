@@ -64,6 +64,7 @@ MDIR=".                              \
       lib/SRC/VideoQuickTime         \
       lib/SRC/VideoQuickTime7        \
       lib/SRC/VideoGStreamer         \
+      lib/SRC/VideoUEye              \
       lib/SRC/ARosg                  \
       lib/SRC/Eden                   \
       util                           \
@@ -328,6 +329,39 @@ then
         fi
     fi
 
+    echo "Do you want to enable the UEye capture module? (y or n)"
+    echo -n "Enter : "
+    read ANS
+    if [ "$ANS" = "y" ]
+    then
+        INPUT_UEYE="y"
+    elif [ "$ANS" = "n" ]
+    then
+        INPUT_UEYE="n"
+    else
+        echo "Please enter y or n."
+        exit 0
+    fi
+    if [ "$INPUT_UEYE" = "y" ]
+    then
+        if [ "$DEFAULT_CAP_DEVICE" = "" ]
+        then
+            echo "Do you want to use it as the default input device? (y or n)"
+            echo -n "Enter : "
+            read ANS
+            if [ "$ANS" = "y" ]
+            then
+                DEFAULT_CAP_DEVICE="UEYE"
+            elif [ "$ANS" = "n" ]
+            then
+                DEFAULT_CAP_DEVICE=""
+            else
+                echo "Please enter y or n."
+                exit 0
+            fi
+        fi
+    fi
+
 
     if [ "$CLANGCC" = "y" ]
     then
@@ -389,6 +423,10 @@ then
         else
             LIBS="$LIBS -lraw1394 -ldc1394_control"
         fi
+    fi
+    if [ "$INPUT_UEYE" = "y" ]
+    then
+        LIBS="$LIBS -lueye_api"
     fi
 
     # When linking against libc++, use supplied opencv rather than system opencv.
@@ -673,6 +711,13 @@ s/#(cd VideoGStreamer;    make -f Makefile)/(cd VideoGStreamer;    make -f Makef
 EOF
 fi
 
+if [ "$INPUT_UEYE" = "y" ]
+then
+cat >> $SED <<EOF
+s/#(cd VideoUEye;         make -f Makefile)/(cd VideoUEye;         make -f Makefile)/
+EOF
+fi
+
 if [ "$INPUT_SGI" = "y" ]
 then
 cat >> $SED <<EOF
@@ -796,6 +841,13 @@ if [ "$INPUT_GSTREAMER" = "y" ]
 then
 cat >> $SED <<EOF
 s/#undef  AR_INPUT_GSTREAMER/#define AR_INPUT_GSTREAMER/
+EOF
+fi
+
+if [ "$INPUT_UEYE" = "y" ]
+then
+cat >> $SED <<EOF
+s/#undef  AR_INPUT_UEYE/#define AR_INPUT_UEYE/
 EOF
 fi
 

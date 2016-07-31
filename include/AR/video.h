@@ -77,7 +77,8 @@ extern "C" {
 #define  AR_VIDEO_DEVICE_WINDOWS_MEDIA_FOUNDATION 16
 #define  AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE 17
 #define  AR_VIDEO_DEVICE_V4L2               18
-#define  AR_VIDEO_DEVICE_MAX                18
+#define  AR_VIDEO_DEVICE_UEYE               19
+#define  AR_VIDEO_DEVICE_MAX                19
 
 
 #define  AR_VIDEO_1394_BRIGHTNESS                      65
@@ -242,7 +243,10 @@ typedef void (*AR_VIDEO_FRAME_READY_CALLBACK)(void *);
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
 #include <AR/sys/videoWindowsMediaCapture.h>
 #endif
-    
+#ifdef AR_INPUT_UEYE
+#include <AR/sys/videoUEye.h>
+#endif
+
 
 typedef union {
 #ifdef AR_INPUT_DUMMY
@@ -295,6 +299,9 @@ typedef union {
 #endif
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     AR2VideoParamWinMCT         *winMC;
+#endif
+#ifdef AR_INPUT_UEYE
+    AR2VideoParamUEye           *ueye;
 #endif
 } AR2VideoDeviceHandleT;
 

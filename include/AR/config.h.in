@@ -256,6 +256,7 @@ enum {
 #undef  AR_INPUT_1394CAM
 #undef  AR_INPUT_GSTREAMER
 #undef  AR_INPUT_IMAGE
+#undef  AR_INPUT_UEYE
 #define AR_INPUT_DUMMY
 
 // Default input module. This is edited by the configure script.
@@ -265,6 +266,7 @@ enum {
 #undef  AR_DEFAULT_INPUT_1394CAM
 #undef  AR_DEFAULT_INPUT_GSTREAMER
 #undef  AR_DEFAULT_INPUT_IMAGE
+#undef  AR_DEFAULT_INPUT_UEYE
 #undef  AR_DEFAULT_INPUT_DUMMY
 
 // Other Linux-only configuration.
@@ -308,7 +310,6 @@ enum {
 #ifdef AR_INPUT_GSTREAMER
 #define AR_INPUT_GSTREAMER_PIXEL_FORMAT   AR_PIXEL_FORMAT_RGB 
 #endif
-
 
 
 /*------------------------------------------------------------*/
@@ -365,6 +366,7 @@ enum {
 #undef  AR_INPUT_WINDOWS_DRAGONFLY
 #undef  AR_INPUT_WINDOWS_MEDIA_FOUNDATION
 #undef  AR_INPUT_WINDOWS_MEDIA_CAPTURE
+#undef  AR_INPUT_UEYE
 
 // Default input module. This is edited by the configure script.
 #undef  AR_DEFAULT_INPUT_DUMMY
@@ -379,6 +381,7 @@ enum {
 #undef  AR_DEFAULT_INPUT_WINDOWS_DRAGONFLY
 #undef  AR_DEFAULT_INPUT_WINDOWS_MEDIA_FOUNDATION
 #undef  AR_DEFAULT_INPUT_WINDOWS_MEDIA_CAPTURE
+#undef  AR_DEFAULT_INPUT_UEYE
 
 // Other Windows-only configuration.
 #define HAVE_LIBJPEG 1
@@ -556,6 +559,10 @@ enum {
 #define AR_INPUT_IMAGE_DEFAULT_PIXEL_FORMAT   AR_PIXEL_FORMAT_RGB
 #endif
 
+#ifdef AR_INPUT_UEYE
+#define AR_INPUT_UEYE_PIXEL_FORMAT   AR_PIXEL_FORMAT_BGR
+#endif
+
 //
 // Setup AR_DEFAULT_PIXEL_FORMAT.
 //
@@ -596,6 +603,8 @@ enum {
 #  define AR_DEFAULT_PIXEL_FORMAT   AR_INPUT_WINDOWS_MEDIA_CAPTURE_PIXEL_FORMAT
 #elif defined(AR_DEFAULT_INPUT_EMSCRIPTEN)
 #  define AR_DEFAULT_PIXEL_FORMAT   AR_INPUT_EMSCRIPTEN_PIXEL_FORMAT
+#elif defined(AR_DEFAULT_INPUT_UEYE)
+#  define AR_DEFAULT_PIXEL_FORMAT   AR_INPUT_UEYE_PIXEL_FORMAT
 #else
 #  error
 #endif

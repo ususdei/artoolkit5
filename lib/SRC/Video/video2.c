@@ -143,11 +143,14 @@ static int ar2VideoGetDeviceWithConfig(const char *config, const char **configSt
             else if( strcmp( b, "-device=WinMC" ) == 0 )    {
                 device = AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE;
             }
-            
+            else if( strcmp( b, "-device=UEye" ) == 0 )     {
+                device = AR_VIDEO_DEVICE_UEYE;
+            }
+
             while( *a != ' ' && *a != '\t' && *a != '\0') a++;
         }
     }
-    
+
     if (configStringFollowingDevice_p) {
         if (*configStringFollowingDevice_p) {
             while( **configStringFollowingDevice_p != ' ' && **configStringFollowingDevice_p != '\t' && **configStringFollowingDevice_p != '\0') (*configStringFollowingDevice_p)++;
@@ -245,6 +248,11 @@ ARVideoSourceInfoListT *ar2VideoCreateSourceInfoList(const char *config_in)
 #endif
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if (device == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE) {
+        return (NULL);
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if (device == AR_VIDEO_DEVICE_UEYE) {
         return (NULL);
     }
 #endif
@@ -398,7 +406,14 @@ AR2VideoParamT *ar2VideoOpen( const char *config_in )
         ARLOGe("ar2VideoOpen: Error: device \"WinMC\" not supported on this build/architecture/system.\n");
 #endif
     }
-    
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+#ifdef AR_INPUT_UEYE
+        if( (vid->device.ueye = ar2VideoOpenUEye(config)) != NULL ) return vid;
+#else
+        ARLOGe("ar2VideoOpen: Error: device \"UEye\" not supported on this build/architecture/system.\n");
+#endif
+    }
+
     free( vid );
     return NULL;
 }
@@ -526,6 +541,11 @@ int ar2VideoClose( AR2VideoParamT *vid )
         ret = ar2VideoCloseWinMC( vid->device.winMC );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        ret = ar2VideoCloseUEye( vid->device.ueye );
+    }
+#endif
     free (vid);
     return (ret);
 } 
@@ -616,6 +636,11 @@ int ar2VideoDispOption( AR2VideoParamT *vid )
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if( vid->deviceType == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE ) {
         return ar2VideoDispOptionWinMC();
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoDispOptionUEye();
     }
 #endif
     return (-1);
@@ -715,6 +740,11 @@ int ar2VideoGetId( AR2VideoParamT *vid, ARUint32 *id0, ARUint32 *id1 )
         return ar2VideoGetIdWinMC( vid->device.winMC, id0, id1 );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoGetIdUEye( vid->device.ueye, id0, id1 );
+    }
+#endif
     return (-1);
 }
 
@@ -804,6 +834,11 @@ int ar2VideoGetSize(AR2VideoParamT *vid, int *x,int *y)
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if( vid->deviceType == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE ) {
         return ar2VideoGetSizeWinMC( vid->device.winMC, x, y );
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoGetSizeUEye( vid->device.ueye, x, y );
     }
 #endif
     return (-1);
@@ -902,6 +937,11 @@ AR_PIXEL_FORMAT ar2VideoGetPixelFormat( AR2VideoParamT *vid )
         return ar2VideoGetPixelFormatWinMC( vid->device.winMC );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoGetPixelFormatUEye( vid->device.ueye );
+    }
+#endif
     return (AR_PIXEL_FORMAT_INVALID);
 }
 
@@ -997,6 +1037,11 @@ AR2VideoBufferT *ar2VideoGetImage( AR2VideoParamT *vid )
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if( vid->deviceType == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE ) {
         ret = ar2VideoGetImageWinMC( vid->device.winMC );
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        ret = ar2VideoGetImageUEye( vid->device.ueye );
     }
 #endif
     if (ret) {
@@ -1122,6 +1167,11 @@ int ar2VideoCapStart( AR2VideoParamT *vid )
         return ar2VideoCapStartWinMC( vid->device.winMC );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoCapStartUEye( vid->device.ueye );
+    }
+#endif
     return (-1);
 }
 
@@ -1232,6 +1282,11 @@ int ar2VideoCapStop( AR2VideoParamT *vid )
         return ar2VideoCapStopWinMC( vid->device.winMC );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoCapStopUEye( vid->device.ueye );
+    }
+#endif
     return (-1);
 }
 
@@ -1338,6 +1393,11 @@ int ar2VideoGetParami( AR2VideoParamT *vid, int paramName, int *value )
         return ar2VideoGetParamiWinMC( vid->device.winMC, paramName, value );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoGetParamiUEye( vid->device.ueye, paramName, value );
+    }
+#endif
     return (-1);
 }
 
@@ -1427,6 +1487,11 @@ int ar2VideoSetParami( AR2VideoParamT *vid, int paramName, int  value )
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if( vid->deviceType == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE ) {
         return ar2VideoSetParamiWinMC( vid->device.winMC, paramName, value );
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoSetParamiUEye( vid->device.ueye, paramName, value );
     }
 #endif
     return (-1);
@@ -1520,6 +1585,11 @@ int ar2VideoGetParamd( AR2VideoParamT *vid, int paramName, double *value )
         return ar2VideoGetParamdWinMC( vid->device.winMC, paramName, value );
     }
 #endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoGetParamdUEye( vid->device.ueye, paramName, value );
+    }
+#endif
     return (-1);
 }
 
@@ -1609,6 +1679,11 @@ int ar2VideoSetParamd( AR2VideoParamT *vid, int paramName, double  value )
 #ifdef AR_INPUT_WINDOWS_MEDIA_CAPTURE
     if( vid->deviceType == AR_VIDEO_DEVICE_WINDOWS_MEDIA_CAPTURE ) {
         return ar2VideoSetParamdWinMC( vid->device.winMC, paramName, value );
+    }
+#endif
+#ifdef AR_INPUT_UEYE
+    if( vid->deviceType == AR_VIDEO_DEVICE_UEYE ) {
+        return ar2VideoSetParamdUEye( vid->device.ueye, paramName, value );
     }
 #endif
     return (-1);
