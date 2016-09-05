@@ -330,63 +330,45 @@ static void  keyEvent( unsigned char key, int x, int y)
 static void calib(void)
 {
     ARParam         param;
-    CvMat          *objectPoints;
-    CvMat          *imagePoints;
-    CvMat          *pointCounts;
-    CvMat          *intrinsics;
-    CvMat          *distortionCoeff;
-    CvMat          *rotationVectors;
-    CvMat          *translationVectors;
-    CvMat          *rotationVector;
-    CvMat          *rotationMatrix;
     float           intr[3][4];
     float           dist[4];
     ARdouble        trans[3][4];
     ARdouble        cx, cy, cz, hx, hy, h, sx, sy, ox, oy, err;
-    int             i, j, k, l;
 
-    objectPoints       = cvCreateMat(capturedImageNum*chessboardCornerNumX*chessboardCornerNumY, 3, CV_32FC1);
-    imagePoints        = cvCreateMat(capturedImageNum*chessboardCornerNumX*chessboardCornerNumY, 2, CV_32FC1);
-    pointCounts        = cvCreateMat(capturedImageNum, 1, CV_32SC1);
-    intrinsics         = cvCreateMat(3, 3, CV_32FC1);
-    distortionCoeff    = cvCreateMat(1, 4, CV_32FC1);
-    rotationVectors    = cvCreateMat(capturedImageNum, 3, CV_32FC1);
-    translationVectors = cvCreateMat(capturedImageNum, 3, CV_32FC1);
-    rotationVector     = cvCreateMat(1, 3, CV_32FC1);
-    rotationMatrix     = cvCreateMat(3, 3, CV_32FC1);
+    std::vector< std::vector< cv::Vec3f > > objectPoints(capturedImageNum);
+    std::vector< std::vector< cv::Vec2f > > imagePoints(capturedImageNum);
+    cv::Mat intrinsics;
+    cv::Mat distortionCoeff;
+    cv::Mat rotationVectors;
+    cv::Mat translationVectors;
 
-    l=0;
-    for( k = 0; k < capturedImageNum; k++ ) {
-        for( i = 0; i < chessboardCornerNumX; i++ ) {
-            for( j = 0; j < chessboardCornerNumY; j++ ) {
-                ((float*)(objectPoints->data.ptr + objectPoints->step*l))[0] = patternWidth*i;
-                ((float*)(objectPoints->data.ptr + objectPoints->step*l))[1] = patternWidth*j;
-                ((float*)(objectPoints->data.ptr + objectPoints->step*l))[2] = 0.0f;
-
-                ((float*)(imagePoints->data.ptr + imagePoints->step*l))[0] = cornerSet[l].x;
-                ((float*)(imagePoints->data.ptr + imagePoints->step*l))[1] = cornerSet[l].y;
-
+    int l=0;
+    for( int k=0; k<capturedImageNum; k++ ) {
+        for( int i=0; i<chessboardCornerNumX; ++i ) {
+            for( int j=0; j<chessboardCornerNumY; ++j ) {
+                objectPoints[k].push_back( cv::Vec3f{ patternWidth*i, patternWidth*j, 0.0f } );
+                imagePoints[k].push_back( cv::Vec2f{ cornerSet[l].x, cornerSet[l].y} );
                 l++;
             }
         }
-        ((int*)(pointCounts->data.ptr))[k] = chessboardCornerNumX*chessboardCornerNumY;
     }
 
-    cvCalibrateCamera2(objectPoints, imagePoints, pointCounts, cvSize(xsize,ysize),
+    auto ret = cv::calibrateCamera(objectPoints, imagePoints, cv::Size(xsize,ysize),
                        intrinsics, distortionCoeff, rotationVectors, translationVectors, 0);
 
-    for( j = 0; j < 3; j++ ) {
-        for( i = 0; i < 3; i++ ) {
-            intr[j][i] = ((float*)(intrinsics->data.ptr + intrinsics->step*j))[i];
+    for( int j = 0; j < 3; j++ ) {
+        for( int i = 0; i < 3; i++ ) {
+            intr[j][i] = intrinsics.at<double>(j,i);
         }
         intr[j][3] = 0.0f;
     }
-    for( i = 0; i < 4; i++ ) {
-        dist[i] = ((float*)(distortionCoeff->data.ptr))[i];
+    for( int i = 0; i < 4; i++ ) {
+        dist[i] = distortionCoeff.at<double>(0,i);
     }
     convParam(intr, dist, xsize, ysize, &param); //COVHI10434 ignored.
     arParamDisp(&param);
 
+#if 0
     l = 0;
     for( k = 0; k < capturedImageNum; k++ ) {
         for( i = 0; i < 3; i++ ) {
@@ -423,17 +405,8 @@ static void calib(void)
         err = sqrt(err/(chessboardCornerNumX*chessboardCornerNumY));
         ARLOG("Err[%2d]: %f[pixel]\n", k+1, err);
     }
+#endif
     saveParam( &param );
-
-    cvReleaseMat(&objectPoints);
-    cvReleaseMat(&imagePoints);
-    cvReleaseMat(&pointCounts);
-    cvReleaseMat(&intrinsics);
-    cvReleaseMat(&distortionCoeff);
-    cvReleaseMat(&rotationVectors);
-    cvReleaseMat(&translationVectors);
-    cvReleaseMat(&rotationVector);
-    cvReleaseMat(&rotationMatrix);
 }
 
 static void convParam(float intr[3][4], float dist[4], int xsize, int ysize, ARParam *param)
